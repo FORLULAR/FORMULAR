@@ -15,11 +15,6 @@ function App() {
     accepteConditions: false
   });
 
-  const [files, setFiles] = useState({
-    identityDocument: null,
-    photo: null
-  });
-
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null);
 
@@ -33,42 +28,6 @@ function App() {
     
     // Effacer l'erreur du champ modifié
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  // Gestion des fichiers uploadés
-  const handleFileChange = (e) => {
-    const { name, files: uploadedFiles } = e.target;
-    const file = uploadedFiles[0];
-
-    if (file) {
-      // Validation du type de fichier
-      const allowedTypes = {
-        identityDocument: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
-        photo: ['image/jpeg', 'image/jpg', 'image/png']
-      };
-
-      if (!allowedTypes[name].includes(file.type)) {
-        setErrors(prev => ({
-          ...prev,
-          [name]: `Format nicht erlaubt. Erlaubte Formate: ${name === 'identityDocument' ? 'PDF, JPG, PNG' : 'JPG, PNG'}`
-        }));
-        e.target.value = '';
-        return;
-      }
-
-      // Validation de la taille (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        setErrors(prev => ({
-          ...prev,
-          [name]: 'Die Datei ist zu groß (max 10MB)'
-        }));
-        e.target.value = '';
-        return;
-      }
-
-      setFiles(prev => ({ ...prev, [name]: file }));
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
@@ -97,12 +56,6 @@ function App() {
     }
     if (!formData.dureeRemboursement || formData.dureeRemboursement < 1 || formData.dureeRemboursement > 360) {
       newErrors.dureeRemboursement = 'Die Rückzahlungsdauer muss zwischen 1 und 360 Monaten liegen';
-    }
-    if (!files.identityDocument) {
-      newErrors.identityDocument = 'Personalausweis/Reisepass ist erforderlich';
-    }
-    if (!files.photo) {
-      newErrors.photo = 'Lichtbild ist erforderlich';
     }
     if (!formData.accepteConditions) {
       newErrors.accepteConditions = 'Sie müssen die Teilnahmebedingungen akzeptieren';
@@ -153,8 +106,8 @@ Rückzahlungsdauer: ${formData.dureeRemboursement} Monate
 DOKUMENTE
 ---------
 ⚠️ WICHTIG: Bitte fügen Sie die folgenden Dokumente als Anhang zu dieser E-Mail hinzu:
-- Personalausweis/Reisepass (${files.identityDocument ? files.identityDocument.name : 'Nicht bereitgestellt'})
-- Lichtbild (${files.photo ? files.photo.name : 'Nicht bereitgestellt'})
+- Personalausweis/Reisepass (PDF, JPG oder PNG)
+- Lichtbild (JPG oder PNG)
 
 ZUSTIMMUNG
 ----------
@@ -192,14 +145,6 @@ Einreichungsdatum: ${new Date().toLocaleString('de-DE')}
         dureeRemboursement: '',
         accepteConditions: false
       });
-      setFiles({
-        identityDocument: null,
-        photo: null
-      });
-      
-      // Réinitialiser les inputs de fichiers
-      document.getElementById('identityDocument').value = '';
-      document.getElementById('photo').value = '';
     }, 3000);
   };
 
@@ -365,38 +310,27 @@ Einreichungsdatum: ${new Date().toLocaleString('de-DE')}
           <section className="form-section">
             <h2 className="section-title">📎 Dokumente und Nachweise</h2>
             
-            <div className="form-group">
-              <label htmlFor="identityDocument">Personalausweis / Reisepass *</label>
-              <input
-                type="file"
-                id="identityDocument"
-                name="identityDocument"
-                onChange={handleFileChange}
-                className={errors.identityDocument ? 'error' : ''}
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
-              <small className="help-text">Erlaubte Formate: PDF, JPG, PNG (max 10MB)</small>
-              {files.identityDocument && (
-                <div className="file-preview">✓ {files.identityDocument.name}</div>
-              )}
-              {errors.identityDocument && <span className="error-message">{errors.identityDocument}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="photo">Lichtbild *</label>
-              <input
-                type="file"
-                id="photo"
-                name="photo"
-                onChange={handleFileChange}
-                className={errors.photo ? 'error' : ''}
-                accept=".jpg,.jpeg,.png"
-              />
-              <small className="help-text">Erlaubte Formate: JPG, PNG (max 10MB)</small>
-              {files.photo && (
-                <div className="file-preview">✓ {files.photo.name}</div>
-              )}
-              {errors.photo && <span className="error-message">{errors.photo}</span>}
+            <div className="info-box" style={{
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffc107',
+              borderRadius: '8px',
+              padding: '20px',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{ color: '#856404', marginTop: 0 }}>📧 Wichtige Information zu Dokumenten</h3>
+              <p style={{ color: '#856404', marginBottom: '10px' }}>
+                Nach dem Absenden dieses Formulars öffnet sich Ihr E-Mail-Client automatisch mit einer vorausgefüllten Nachricht.
+              </p>
+              <p style={{ color: '#856404', marginBottom: '10px' }}>
+                <strong>Bitte fügen Sie die folgenden Dokumente als Anhänge zu dieser E-Mail hinzu:</strong>
+              </p>
+              <ul style={{ color: '#856404', marginLeft: '20px' }}>
+                <li><strong>Personalausweis oder Reisepass</strong> (PDF, JPG oder PNG)</li>
+                <li><strong>Lichtbild</strong> (JPG oder PNG)</li>
+              </ul>
+              <p style={{ color: '#856404', marginBottom: 0 }}>
+                ⚠️ <em>Ohne diese Dokumente kann Ihr Antrag nicht bearbeitet werden.</em>
+              </p>
             </div>
           </section>
 
