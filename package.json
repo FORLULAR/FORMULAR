@@ -1,0 +1,16 @@
+{
+  "name": "finanzplus-austria-formulaire",
+  "version": "1.0.0",
+  "description": "Formulaire d'éligibilité au prêt FinanzPlus Austria",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "FinanzPlus Austria",
+  "license": "ISC",
+  "dependencies": {
+    "nodemailer": "^6.9.1",
+    "formidable": "^3.5.1"
+  }
+}
